@@ -12,7 +12,7 @@ npm install --save event-saga
 
 ## Usage
 
-```
+```js
 // create a normal EventEmitter
 var emitter = new EventEmitter();
 
@@ -55,7 +55,7 @@ The event data should have an `id` field that will be used to map the event to t
 
 If a saga instance doesn't exist for the given `id`, one will be created. It can be accessed using `this.data` inside the reaction.
 
-```
+```js
 saga.createOn('start', function(data){
   this.data.value = data.value;
 });
@@ -72,7 +72,7 @@ The event data should have an `id` field that will be used to map the event to t
 
 The saga instance can be accessed using `this.data` inside the reaction.
 
-```
+```js
 saga.on('change', function(data){
   this.data.value = data.value;
 });
@@ -86,11 +86,15 @@ emitter.emit('change', {id:3, value:0}); // nothing will happen, since there is 
 
 The saga instance object. Store data on this object. It can be anything.
 
+### `this.id`
+
+The saga id. Readonly
+
 ### `this.done()`
 
 Destroys the saga instance object. 
 
-```
+```js
 saga.on('stop', function(data){
   console.log(this.data.value);
   this.done();
