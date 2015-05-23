@@ -30,31 +30,35 @@ describe('EventSaga', function(){
     });
     
     describe('on creation', function(){
+      var data = {id: 1};
+      
       beforeEach(function(){
         spy = sinon.spy();
         saga.createOn('create', spy);
 
         because: {
-          emitter.emit('create', {id: 1});
+          emitter.emit('create', data);
         }
       });
       
       it('should react when an event is emitted', function(){
-        sinon.assert.called(spy);
+        sinon.assert.calledWith(spy, data);
       });
       
       describe('after creation', function(){
+        var dat = {id: 1};
+        
         beforeEach(function(){
           spy = sinon.spy();
           saga.on('something', spy);
 
           because: {
-            emitter.emit('something', {id: 1});
+            emitter.emit('something', data);
           }
         });
 
         it('should react when an event is emitted after it has been created', function(){
-          sinon.assert.called(spy);
+          sinon.assert.calledWith(spy, data);
         });
       });
     });

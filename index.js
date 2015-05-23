@@ -1,23 +1,30 @@
 function EventSaga(emitter, options){
-  this.emitter = emitter;
-  this.store = Object.create(null);
-};
-
-EventSaga.prototype.on = function(event, reaction){
-  this.emitter.on(event, function(data){
-    if(data && this.store[data.id]){
-      reaction(data);
+  var store = Object.create(null);
+  function getRealm(id){
+    return{
+      data: store[id],
+      done: function(){
+        delete store[id];
+      }
     }
-  }.bind(this));
-};
+  }
 
-EventSaga.prototype.createOn = function(event, reaction){
-  this.emitter.on(event, function(data){
-    if(data && 'id' in data){
-      this.store[data.id] = {};
-    }
-    reaction(data);
-  }.bind(this));
+  this.on = function(event, reaction){
+    emitter.on(event, function(data){
+      if(data && 'id' in data && store[data.id]){
+        reaction.call(getRealm(data.id), data);
+      }
+    });
+  };
+
+  this.createOn = function(event, reaction){
+    emitter.on(event, function(data){
+      if(data && 'id' in data){
+        store[data.id] = {};
+      }
+      reaction.call(getRealm(data.id), data);
+    });
+  };
 };
 
 module.exports = EventSaga;
