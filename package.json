@@ -1,5 +1,5 @@
 {
-  "name": "EventSaga",
+  "name": "event-saga",
   "version": "1.0.0",
   "description": "Saga storage for EventStream",
   "main": "index.js",
