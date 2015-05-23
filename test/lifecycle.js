@@ -35,6 +35,27 @@ describe('EventSaga', function(){
       });
     });
     
+    describe('replace entire data object', function(){
+      beforeEach(function(){
+        spy = sinon.spy();
+        saga.createOn('create', function(data){
+          this.data = data.name;
+        });
+        saga.on('something', function(data){
+          spy(this.data)
+        });
+
+        because: {
+          emitter.emit('create', {id:1, name:'test'});
+          emitter.emit('something', {id:1});
+        }
+      });
+      
+      it('should get the same data object the second time', function(){
+        sinon.assert.calledWith(spy, 'test');
+      });
+    });
+    
     describe('separate sagas', function(){
       beforeEach(function(){
         spy = sinon.spy();

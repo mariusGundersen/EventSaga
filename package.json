@@ -1,6 +1,6 @@
 {
   "name": "event-saga",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Saga storage for EventStream",
   "main": "index.js",
   "dependencies": {
