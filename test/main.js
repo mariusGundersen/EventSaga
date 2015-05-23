@@ -1,4 +1,5 @@
 var expect = require('expect.js');
+var EventEmitter = require('events').EventEmitter;
 var EventSaga = require('../index');
 
 describe('EventSaga', function(){
@@ -27,6 +28,39 @@ describe('EventSaga', function(){
     it('should have a createOn method', function(){
       expect(saga.createOn).to.be.a(Function);
       expect(saga.on.length).to.be(2);
+    });
+  });
+  
+  describe('reaction instance', function(){
+    var emitter,
+        saga;
+    beforeEach(function(){
+      emitter = new EventEmitter();
+      saga = new EventSaga(emitter);
+    });
+    
+    it('should have done', function(done){
+      saga.createOn('event', function(){
+        expect(this.done).to.be.a(Function);
+        done();
+      });
+      emitter.emit('event', {id:0});
+    });
+    
+    it('should have data', function(done){
+      saga.createOn('event', function(){
+        expect(this.data).to.be.an(Object);
+        done();
+      });
+      emitter.emit('event', {id:0});
+    });
+    
+    it('should have id', function(done){
+      saga.createOn('event', function(){
+        expect(this.id).to.be(0);
+        done();
+      });
+      emitter.emit('event', {id:0});
     });
   });
 });

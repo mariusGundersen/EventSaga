@@ -2,6 +2,7 @@ function EventSaga(emitter, options){
   var store = Object.create(null);
   function getRealm(id){
     return{
+      id: id,
       data: store[id],
       done: function(){
         delete store[id];
