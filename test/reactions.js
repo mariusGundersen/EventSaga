@@ -1,66 +1,29 @@
-var expect = require('expect.js');
-var sinon = require('sinon');
-var EventEmitter = require('events').EventEmitter;
-var EventSaga = require('../index');
+import expect from 'expect.js';
+import sinon from 'sinon';
+import {Jar} from 'descartes';
+import {EventEmitter} from 'events';
+import EventSaga from '../src/index';
 
 describe('EventSaga', function(){
-  describe('reactions', function(){
-    var emitter,
-        saga,
-        spy;
-    
-    beforeEach(function(){
-      emitter = new EventEmitter();
-      saga = new EventSaga(emitter);
-    });
-    
-    describe('before creation', function(){
-      beforeEach(function(){
-        spy = sinon.spy();
-        saga.on('something', spy);
+  it("should work", async function(){
+    const emitter = new EventEmitter();
+    const saga = new EventSaga(emitter);
+    const jar = new Jar();
+    const createSpy = jar.sensor('create');
+    const somethingSpy = jar.sensor('something');
 
-        because: {
-          emitter.emit('something', {id:1});
-        }
-      });
-      
-      it('should not react when an event is emitted before it has been created', function(){
-        sinon.assert.notCalled(spy);
-      });
-    });
-    
-    describe('on creation', function(){
-      var data = {id: 1};
-      
-      beforeEach(function(){
-        spy = sinon.spy();
-        saga.createOn('create', spy);
+    saga.createOn('create', createSpy);
+    saga.on('something', somethingSpy);
 
-        because: {
-          emitter.emit('create', data);
-        }
-      });
-      
-      it('should react when an event is emitted', function(){
-        sinon.assert.calledWith(spy, data);
-      });
-      
-      describe('after creation', function(){
-        var dat = {id: 1};
-        
-        beforeEach(function(){
-          spy = sinon.spy();
-          saga.on('something', spy);
+    emitter.emit('something', {id:1});
+    //nothing happens here
 
-          because: {
-            emitter.emit('something', data);
-          }
-        });
+    emitter.emit('create', {id: 1});
+    await createSpy.called();
 
-        it('should react when an event is emitted after it has been created', function(){
-          sinon.assert.calledWith(spy, data);
-        });
-      });
-    });
+    emitter.emit('something', {id: 1});
+    await somethingSpy.called();
+
+    jar.done();
   });
 });
