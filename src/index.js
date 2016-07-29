@@ -1,19 +1,26 @@
 export default class EventSaga{
   constructor(emitter, options){
-    const store = new Map();
+    const dataStore = new Map();
+    const timeoutStore = new Map();
     let queue = Promise.resolve();
     async function react(id, reaction, data){
       let done = false;
       const realm = {
         id: id,
-        data: store.get(id),
-        done: () => done = true
+        data: dataStore.get(id),
+        done: () => done = true,
+        setTimeout: (event, data, time=data) => doLater(id, event, data, time),
+        clearTimeout: event => dontDoLater(id, event)
       };
       reaction.call(realm, data);
       if(done){
-        store.delete(id);
+        dataStore.delete(id);
+        for(let timeout of timeoutStore.get(id).values()){
+          clearTimeout(timeout);
+        }
+        timeoutStore.delete(id);
       }else{
-        store.set(data.id, realm.data);
+        dataStore.set(data.id, realm.data);
       }
     }
 
@@ -25,9 +32,25 @@ export default class EventSaga{
       };
     }
 
+    function doLater(id, event, data, time){
+      const timeouts = timeoutStore.get(id);
+      if(timeouts.has(event)){
+        clearTimeout(timeouts.get(event));
+      }
+
+      timeouts.set(event, setTimeout(() => emitter.emit(event, Object.assign({id}, data)), time));
+    }
+
+    function dontDoLater(id, event){
+      const timeouts = timeoutStore.get(id);
+      if(timeouts.has(event)){
+        clearTimeout(timeouts.get(event));
+      }
+    }
+
     this.on = function(event, reaction){
       emitter.on(event, enqueue(data => {
-        if(store.has(data.id)){
+        if(dataStore.has(data.id)){
           return react(data.id, reaction, data);
         }
       }));
@@ -35,8 +58,11 @@ export default class EventSaga{
 
     this.createOn = function(event, reaction){
       emitter.on(event, enqueue(data => {
-        if(!store.has(data.id)){
-          store.set(data.id, {});
+        if(!dataStore.has(data.id)){
+          dataStore.set(data.id, {});
+        }
+        if(!timeoutStore.has(data.id)){
+          timeoutStore.set(data.id, new Map());
         }
         return react(data.id, reaction, data);
       }));

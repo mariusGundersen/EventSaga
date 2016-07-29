@@ -26,12 +26,23 @@ saga.createOn('logon', function(data){
   //this.data is the saga storage
   this.data.shoppingCart = [];
   this.data.username = data.username;
+
+  //call this event in 60 seconds
+  this.setTimeout('emptyCart', 60*1000);
 });
 
 //Only handle this event if the saga exists (if logon has happened already)
 saga.on('itemPlacedInShoppingCart', function(data){
   this.data.shoppingCart.push(data.item);
+
+  //this replaces the previous timeout with the same name
+  this.setTimeout('emptyCart', {}, 60*1000);
 });
+
+saga.on('emptyCart', function(data){
+  //finalize the saga, clearing away all data and timeouts
+  this.done();
+})
 
 saga.on('checkout', function(data){
   //trigger a side-effect
@@ -92,7 +103,7 @@ The saga id. Readonly
 
 ### `this.done()`
 
-Destroys the saga instance object. 
+Destroys the saga instance object.
 
 ```js
 saga.on('stop', function(data){
@@ -105,3 +116,12 @@ emitter.emit('change', {id:1, value:-9});
 emitter.emit('stop', {id:1}); // will console.log -9
 emitter.emit('change', {id:1, value:0}); // nothing will happen, since there is no saga anymore for id:1
 ```
+
+### `this.setTimeout(event, data, milliseconds)`
+
+Schedules an event in the future. If a timeout with the same event name has
+been scheduled already, it will be replaced.
+
+### `this.clearTimeout(event)`
+
+Uschedules an event scheduled using `this.setTimeout()`.
