@@ -8,6 +8,7 @@ export default class EventSaga{
       const realm = {
         id: id,
         data: dataStore.get(id),
+        emit: (event, data) => emitter.emit(event, data),
         done: () => done = true,
         setTimeout: (event, data, time=data) => doLater(id, event, data, time),
         clearTimeout: event => dontDoLater(id, event)

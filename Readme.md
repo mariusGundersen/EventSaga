@@ -124,4 +124,8 @@ been scheduled already, it will be replaced.
 
 ### `this.clearTimeout(event)`
 
-Uschedules an event scheduled using `this.setTimeout()`.
+Unschedules an event scheduled using `this.setTimeout()`.
+
+### `this.emit(event, data)`
+
+Emits an event on the EventEmitter

@@ -14,6 +14,9 @@ describe('EventSaga', function(){
 
     saga.createOn('create', createSpy);
     saga.on('something', somethingSpy);
+    saga.on('trigger', function(){
+      this.emit('something', {id: this.id});
+    });
 
     emitter.emit('something', {id:1});
     //nothing happens here
@@ -22,6 +25,9 @@ describe('EventSaga', function(){
     await createSpy.called();
 
     emitter.emit('something', {id: 1});
+    await somethingSpy.called();
+
+    emitter.emit('trigger', {id: 1});
     await somethingSpy.called();
 
     jar.done();
