@@ -5,7 +5,7 @@ export default class EventSaga{
     let queue = Promise.resolve();
     async function react(id, reaction, data){
       let done = false;
-      const realm = {
+      const actor = {
         id: id,
         data: dataStore.get(id),
         emit: (event, data) => emitter.emit(event, data),
@@ -13,7 +13,7 @@ export default class EventSaga{
         setTimeout: (event, data, time=data) => doLater(id, event, data, time),
         clearTimeout: event => dontDoLater(id, event)
       };
-      reaction.call(realm, data);
+      reaction.call(actor, data, actor);
       if(done){
         dataStore.delete(id);
         for(let timeout of timeoutStore.get(id).values()){
@@ -21,7 +21,7 @@ export default class EventSaga{
         }
         timeoutStore.delete(id);
       }else{
-        dataStore.set(data.id, realm.data);
+        dataStore.set(data.id, actor.data);
       }
     }
 

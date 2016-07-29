@@ -14,8 +14,8 @@ describe('EventSaga', function(){
 
     saga.createOn('create', createSpy);
     saga.on('something', somethingSpy);
-    saga.on('trigger', function(){
-      this.emit('something', {id: this.id});
+    saga.on('trigger', (data, actor) => {
+      actor.emit('something', {id: actor.id});
     });
 
     emitter.emit('something', {id:1});
