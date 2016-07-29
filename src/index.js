@@ -5,14 +5,14 @@ function EventSaga(emitter, options){
     let done = false;
     const realm = {
       id: id,
-      data: await Promise.resolve(store.get(id)),
+      data: store.get(id),
       done: () => done = true
     };
-    await Promise.resolve(reaction.call(realm, data));
+    reaction.call(realm, data);
     if(done){
-      await Promise.resolve(store.delete(id));
+      store.delete(id);
     }else{
-      await Promise.resolve(store.set(data.id, realm.data));
+      store.set(data.id, realm.data);
     }
   }
 
