@@ -32,16 +32,18 @@ var saga = new EventSaga(emitter, saga => {
   });
 
   //Only handle this event if the saga exists (if logon has happened already)
-  saga.on('itemPlacedInShoppingCart', function(data){
-    this.data.shoppingCart.push(data.item);
+  //You can also use fat arrow functions, and use the second parameter (actor)
+  //instead of using `this`.
+  saga.on('itemPlacedInShoppingCart', (data, actor) => {
+    actor.data.shoppingCart.push(data.item);
 
     //this replaces the previous timeout with the same name
-    this.setTimeout('emptyCart', {}, 60*1000);
+    actor.setTimeout('emptyCart', {}, 60*1000);
   });
 
-  saga.on('emptyCart', function(data){
+  saga.on('emptyCart', (_, actor) => {
     //finalize the saga, clearing away all data and timeouts
-    this.done();
+    actor.done();
   })
 
   saga.on('checkout', function(data){
@@ -57,7 +59,10 @@ var saga = new EventSaga(emitter, saga => {
 
 ### `new EventSaga(eventEmitter, saga => { /* initialize here */ })`
 
-Creates a new saga that will react to events from the eventEmitter
+Creates a new saga that will react to events from the eventEmitter.
+
+EventSaga uses the [revealing constructor pattern](https://blog.domenic.me/the-revealing-constructor-pattern/), where the second
+argument to the constructor is the executor function. This is a function that will receive one parameter, the `saga` object.
 
 ### `saga.createOn(event, reaction)`
 
@@ -65,11 +70,12 @@ Listens to events from the event emitter, creates a new saga if one doesn't alre
 
 The event data should have an `id` field that will be used to map the event to the correct saga instance.
 
-If a saga instance doesn't exist for the given `id`, one will be created. It can be accessed using `this.data` inside the reaction.
+If a saga instance doesn't exist for the given `id`, one will be created. It can be accessed using `this.data` or `actor.data` inside the reaction.
 
 ```js
-saga.createOn('start', function(data){
+saga.createOn('start', function(data, actor){
   this.data.value = data.value;
+  assert(this === actor);
 });
 
 emitter.emit('start', {id:1, value:15});
@@ -82,11 +88,12 @@ Listens to events from the event emitter and reacts to the event, but only if a 
 
 The event data should have an `id` field that will be used to map the event to the correct saga instance.
 
-The saga instance can be accessed using `this.data` inside the reaction.
+The saga instance can be accessed using `this.data` or `actor.data` inside the reaction.
 
 ```js
-saga.on('change', function(data){
+saga.on('change', function(data, actor){
   this.data.value = data.value;
+  assert(this === actor);
 });
 
 emitter.emit('change', {id:1, value:12});
@@ -94,22 +101,22 @@ emitter.emit('change', {id:2, value:-9});
 emitter.emit('change', {id:3, value:0}); // nothing will happen, since there is no saga for id:3
 ```
 
-### `this.data`
+### `actor.data`
 
 The saga instance object. Store data on this object. It can be anything.
 
-### `this.id`
+### `actor.id`
 
 The saga id. Readonly
 
-### `this.done()`
+### `actor.done()`
 
-Destroys the saga instance object.
+Destroys the actor instance.
 
 ```js
-saga.on('stop', function(data){
-  console.log(this.data.value);
-  this.done();
+saga.on('stop', (data, actor) => {
+  console.log(actor.data.value);
+  actor.done();
 });
 
 emitter.emit('start', {id:1, value:12});
@@ -118,15 +125,15 @@ emitter.emit('stop', {id:1}); // will console.log -9
 emitter.emit('change', {id:1, value:0}); // nothing will happen, since there is no saga anymore for id:1
 ```
 
-### `this.setTimeout(event, data, milliseconds)`
+### `actor.setTimeout(event, data, milliseconds)`
 
 Schedules an event in the future. If a timeout with the same event name has
 been scheduled already, it will be replaced.
 
-### `this.clearTimeout(event)`
+### `actor.clearTimeout(event)`
 
-Unschedules an event scheduled using `this.setTimeout()`.
+Unschedules an event scheduled using `actor.setTimeout()`.
 
-### `this.emit(event, data)`
+### `actor.emit(event, data)`
 
 Emits an event on the EventEmitter
