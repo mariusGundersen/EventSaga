@@ -1,5 +1,18 @@
 export default class EventSaga{
-  constructor(emitter, options){
+  constructor(emitter, executingFunction){
+
+    if(emitter == null
+    || typeof(emitter) != 'object'
+    || typeof(emitter.on) != 'function'
+    || typeof(emitter.emit) != 'function'){
+      throw new Error('First argument must be an event emitter');
+    }
+
+    if(executingFunction == null
+    || typeof(executingFunction) != 'function'){
+      throw new Error('Second argument must be a function that takes one parameter');
+    }
+
     const dataStore = new Map();
     const timeoutStore = new Map();
     let queue = Promise.resolve();
@@ -49,24 +62,27 @@ export default class EventSaga{
       }
     }
 
-    this.on = function(event, reaction){
-      emitter.on(event, enqueue(data => {
-        if(dataStore.has(data.id)){
+    const saga = {
+      on(event, reaction){
+        emitter.on(event, enqueue(data => {
+          if(dataStore.has(data.id)){
+            return react(data.id, reaction, data);
+          }
+        }));
+      },
+      createOn(event, reaction){
+        emitter.on(event, enqueue(data => {
+          if(!dataStore.has(data.id)){
+            dataStore.set(data.id, {});
+          }
+          if(!timeoutStore.has(data.id)){
+            timeoutStore.set(data.id, new Map());
+          }
           return react(data.id, reaction, data);
-        }
-      }));
+        }));
+      }
     };
 
-    this.createOn = function(event, reaction){
-      emitter.on(event, enqueue(data => {
-        if(!dataStore.has(data.id)){
-          dataStore.set(data.id, {});
-        }
-        if(!timeoutStore.has(data.id)){
-          timeoutStore.set(data.id, new Map());
-        }
-        return react(data.id, reaction, data);
-      }));
-    };
+    executingFunction(saga);
   }
 }

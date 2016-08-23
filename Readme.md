@@ -17,44 +17,45 @@ npm install --save event-saga
 var emitter = new EventEmitter();
 
 // create the saga that listens to the EventEmitter
-var saga = new EventSaga(emitter);
+var saga = new EventSaga(emitter, saga => {
 
-//Create a new saga whenever the 'logon' event is emitted
-saga.createOn('logon', function(data){
-  //a new saga has been made
-  //the data has the data emitted by the EventEmitter
-  //this.data is the saga storage
-  this.data.shoppingCart = [];
-  this.data.username = data.username;
+  //Create a new saga whenever the 'logon' event is emitted
+  saga.createOn('logon', function(data){
+    //a new saga has been made
+    //the data has the data emitted by the EventEmitter
+    //this.data is the saga storage
+    this.data.shoppingCart = [];
+    this.data.username = data.username;
 
-  //call this event in 60 seconds
-  this.setTimeout('emptyCart', 60*1000);
-});
+    //call this event in 60 seconds
+    this.setTimeout('emptyCart', 60*1000);
+  });
 
-//Only handle this event if the saga exists (if logon has happened already)
-saga.on('itemPlacedInShoppingCart', function(data){
-  this.data.shoppingCart.push(data.item);
+  //Only handle this event if the saga exists (if logon has happened already)
+  saga.on('itemPlacedInShoppingCart', function(data){
+    this.data.shoppingCart.push(data.item);
 
-  //this replaces the previous timeout with the same name
-  this.setTimeout('emptyCart', {}, 60*1000);
-});
+    //this replaces the previous timeout with the same name
+    this.setTimeout('emptyCart', {}, 60*1000);
+  });
 
-saga.on('emptyCart', function(data){
-  //finalize the saga, clearing away all data and timeouts
-  this.done();
-})
+  saga.on('emptyCart', function(data){
+    //finalize the saga, clearing away all data and timeouts
+    this.done();
+  })
 
-saga.on('checkout', function(data){
-  //trigger a side-effect
-  buyItems(this.username, this.data.shoppingCart);
-  //finalize the saga.
-  this.done();
+  saga.on('checkout', function(data){
+    //trigger a side-effect
+    buyItems(this.username, this.data.shoppingCart);
+    //finalize the saga.
+    this.done();
+  });
 });
 ```
 
 ## API
 
-### `new EventSaga(eventEmitter, [options])`
+### `new EventSaga(eventEmitter, saga => { /* initialize here */ })`
 
 Creates a new saga that will react to events from the eventEmitter
 

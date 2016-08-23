@@ -6,23 +6,23 @@ import EventSaga from '../src/index';
 describe('EventSaga', function(){
   describe('lifecycle', function(){
     var emitter,
-        saga,
         spy;
 
     beforeEach(function(){
       emitter = new EventEmitter();
-      saga = new EventSaga(emitter);
     });
 
     describe('simple create', function(){
       beforeEach(function(done){
         spy = sinon.spy();
-        saga.createOn('create', function(data){
-          this.data.name = data.name;
-        });
-        saga.on('something', function(data){
-          spy(this.data.name)
-          done();
+        new EventSaga(emitter, saga => {
+          saga.createOn('create', function(data){
+            this.data.name = data.name;
+          });
+          saga.on('something', function(data){
+            spy(this.data.name)
+            done();
+          });
         });
 
         because: {
@@ -39,12 +39,14 @@ describe('EventSaga', function(){
     describe('replace entire data object', function(){
       beforeEach(function(done){
         spy = sinon.spy();
-        saga.createOn('create', function(data){
-          this.data = data.name;
-        });
-        saga.on('something', function(data){
-          spy(this.data);
-          done();
+        new EventSaga(emitter, saga => {
+          saga.createOn('create', function(data){
+            this.data = data.name;
+          });
+          saga.on('something', function(data){
+            spy(this.data);
+            done();
+          });
         });
 
         because: {
@@ -61,12 +63,14 @@ describe('EventSaga', function(){
     describe('separate sagas', function(){
       beforeEach(function(done){
         spy = sinon.spy();
-        saga.createOn('create', function(data){
-          this.data.name = data.name;
-        });
-        saga.on('something', function(data){
-          spy(this.data.name);
-          if(data.id == 2) done();
+        new EventSaga(emitter, saga => {
+          saga.createOn('create', function(data){
+            this.data.name = data.name;
+          });
+          saga.on('something', function(data){
+            spy(this.data.name);
+            if(data.id == 2) done();
+          });
         });
 
         because: {
@@ -89,15 +93,17 @@ describe('EventSaga', function(){
     describe('complete a saga', function(){
       beforeEach(function(done){
         spy = sinon.spy();
-        saga.createOn('create', function(data){
-          this.data.name = data.name;
-        });
-        saga.on('something', function(data){
-          spy(this.data.name)
-        });
-        saga.on('done', function(data){
-          this.done();
-          done();
+        new EventSaga(emitter, saga => {
+          saga.createOn('create', function(data){
+            this.data.name = data.name;
+          });
+          saga.on('something', function(data){
+            spy(this.data.name)
+          });
+          saga.on('done', function(data){
+            this.done();
+            done();
+          });
         });
 
         because: {

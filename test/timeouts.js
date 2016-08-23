@@ -6,16 +6,17 @@ import EventSaga from '../src/index';
 
 describe('Timeouts', function(){
   it("should work", async function(){
-    const emitter = new EventEmitter();
-    const saga = new EventSaga(emitter);
     const jar = new Jar();
     const somethingSpy = jar.sensor('something');
 
-    saga.createOn('create', function() {
-      this.setTimeout('something', {}, 10);
-    });
+    const emitter = new EventEmitter();
+    const saga = new EventSaga(emitter, saga => {
+      saga.createOn('create', function() {
+        this.setTimeout('something', {}, 10);
+      });
 
-    saga.on('something', somethingSpy);
+      saga.on('something', somethingSpy);
+    });
 
     emitter.emit('create', {id: 1});
 
@@ -28,17 +29,18 @@ describe('Timeouts', function(){
 
 describe('Timeouts clear on done', function(){
   it("should work", async function(){
-    const emitter = new EventEmitter();
-    const saga = new EventSaga(emitter);
     const jar = new Jar();
     const somethingSpy = jar.sensor('something');
 
-    saga.createOn('create', function() {
-      this.setTimeout('something', 100);
-      this.done();
-    });
+    const emitter = new EventEmitter();
+    const saga = new EventSaga(emitter, saga => {
+      saga.createOn('create', function() {
+        this.setTimeout('something', 100);
+        this.done();
+      });
 
-    saga.on('something', somethingSpy);
+      saga.on('something', somethingSpy);
+    });
 
     emitter.emit('create', {id: 1});
 
@@ -48,17 +50,18 @@ describe('Timeouts clear on done', function(){
 
 describe('Timeouts cleared', function(){
   it("should work", async function(){
-    const emitter = new EventEmitter();
-    const saga = new EventSaga(emitter);
     const jar = new Jar();
     const somethingSpy = jar.sensor('something');
 
-    saga.createOn('create', function() {
-      this.setTimeout('something', {}, 100);
-      this.clearTimeout('something');
-    });
+    const emitter = new EventEmitter();
+    const saga = new EventSaga(emitter, saga => {
+      saga.createOn('create', function() {
+        this.setTimeout('something', {}, 100);
+        this.clearTimeout('something');
+      });
 
-    saga.on('something', somethingSpy);
+      saga.on('something', somethingSpy);
+    });
 
     emitter.emit('create', {id: 1});
 

@@ -6,16 +6,17 @@ import EventSaga from '../src/index';
 
 describe('EventSaga', function(){
   it("should work", async function(){
-    const emitter = new EventEmitter();
-    const saga = new EventSaga(emitter);
     const jar = new Jar();
     const createSpy = jar.sensor('create');
     const somethingSpy = jar.sensor('something');
 
-    saga.createOn('create', createSpy);
-    saga.on('something', somethingSpy);
-    saga.on('trigger', (data, actor) => {
-      actor.emit('something', {id: actor.id});
+    const emitter = new EventEmitter();
+    const saga = new EventSaga(emitter, saga => {
+      saga.createOn('create', createSpy);
+      saga.on('something', somethingSpy);
+      saga.on('trigger', (data, actor) => {
+        actor.emit('something', {id: actor.id});
+      });
     });
 
     emitter.emit('something', {id:1});
